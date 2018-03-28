@@ -1,0 +1,29 @@
+server {
+    listen 80;
+    server_name local.project.vn cron.nuocsucmieng.vn;
+
+    client_max_body_size 500M;
+    proxy_buffering off;
+
+    access_log /var/log/nginx/project_vn_access.log;
+    error_log /var/log/nginx/project_vn_error.log;
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location /static/ {
+        alias /var/www/html/project/static/;
+    }
+
+    location /files/ {
+            alias /var/www/html/project/files/;
+     }
+
+    location / {
+        include         uwsgi_params;
+        uwsgi_pass      unix:/run/uwsgi/project.sock;
+        uwsgi_max_temp_file_size 20480m;
+        uwsgi_ignore_client_abort on;
+        uwsgi_read_timeout 6000;
+        uwsgi_send_timeout 6000;
+        uwsgi_connect_timeout 60;
+    }
+}
