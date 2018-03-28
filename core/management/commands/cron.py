@@ -133,8 +133,6 @@ def process(response, network, site, stdout):
 
 
 def get_device(content):
-    if isinstance(content, int) or isinstance(content, basestring):
-        return None
 
     if 'devices' in content:
         return content.get('devices')
@@ -356,8 +354,7 @@ def parse_offer(content, network, site, stdout):
 
     if devices:
         if isinstance(devices, basestring):
-            if ',' in devices:
-                devices = devices.split(',')
+            devices = devices.split(',')
 
         if isinstance(devices, dict):
             devices = devices.values()
