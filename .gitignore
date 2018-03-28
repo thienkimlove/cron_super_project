@@ -108,4 +108,3 @@ venv.bak/
 include/
 .idea/
 bin/
-logs/
