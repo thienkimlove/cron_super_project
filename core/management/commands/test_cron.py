@@ -36,9 +36,10 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-
         site = options['site']
         network = Network.objects.using(site).get(pk=options['network_id'])
+        self.stdout.write('Start getting data from URL. Please wait...')
+        self.stdout.write('<br/>')
         cron_one(site, network, self.stdout)
 
         self.stdout.write('Done')

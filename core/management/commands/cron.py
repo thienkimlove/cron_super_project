@@ -453,8 +453,7 @@ def logistic(url, network, site, stdout):
 
 
 def cron_one(site, network, stdout):
-    stdout.write('Start with network_id=%s for site=%s' % (network.id, site))
-    stdout.write("<br/>")
+
     Offer.objects.using(site).filter(network=network).filter(net_offer_id__isnull=True).delete()
     response = None
     try:

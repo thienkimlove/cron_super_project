@@ -34,6 +34,9 @@ def stream_response_generator():
         yield line
 
 def command_response(site, network_id):
+
+    yield 'Start with network_id=%s for site=%s' % (network_id, site)
+    yield '<br/>'
     process = subprocess.Popen(["/root/Env/project/bin/python", "/var/www/html/project/manage.py", "test_cron", "--site=%s" % site, "--network_id=%s" % network_id], stdout=subprocess.PIPE)
 
     while True:
