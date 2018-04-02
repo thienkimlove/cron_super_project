@@ -3,6 +3,7 @@ import re
 import time
 from urllib.parse import unquote, urlparse, parse_qs
 
+import pika as pika
 import pytz
 import requests
 import json
@@ -21,6 +22,22 @@ from django.db import connection
 from django.apps import apps
 
 from project.settings import LOG_FILE, LOG_CRON_DIRECTORY, TEST_JSON
+
+
+def rabit_send(message, routing):
+
+    if routing != 'cron':
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        channel = connection.channel()
+
+        # send a message
+        channel.basic_publish(exchange='', routing_key=routing, body=message)
+
+        print('send message!')
+
+        connection.close()
+    else:
+        print(message)
 
 
 def debug(msg):
@@ -113,8 +130,7 @@ def process(response, network, site, stdout):
 
     write_log(site, network.id, 'Have Raw Content')
 
-    stdout.write('Have Raw Content')
-    stdout.write("<br/>")
+    rabit_send('Have Raw Content', stdout)
 
     if raw_content:
         if isinstance(raw_content, dict):
@@ -306,8 +322,7 @@ def parse_offer(content, network, site, stdout):
     if offer_name:
         offer_name = str(offer_name)[:191]
     else:
-        stdout.write('Can not get offer_name for offer with content=%s' % repr(content))
-        stdout.write("<br/>")
+        rabit_send('Can not get offer_name for offer with content=%s' % repr(content), stdout)
 
     payout = get_payout(content)
 
@@ -319,16 +334,14 @@ def parse_offer(content, network, site, stdout):
             payout = round(float(payout), 2)
 
     else:
-        stdout.write('Can not get payout for offer with content=%s' % repr(content))
-        stdout.write("<br/>")
+        rabit_send('Can not get payout for offer with content=%s' % repr(content), stdout)
 
     net_offer_id = get_net_offer_id(content)
 
     if net_offer_id:
         net_offer_id = int(net_offer_id)
     else:
-        stdout.write('Can not get net_offer_id for offer with content=%s' % repr(content))
-        stdout.write("<br/>")
+        rabit_send('Can not get net_offer_id for offer with content=%s' % repr(content), stdout)
 
     geo_locations = get_geo_locations(content)
 
@@ -338,8 +351,7 @@ def parse_offer(content, network, site, stdout):
     if geo_locations:
         geo_locations = geo_locations.replace('|', ',')
     else:
-        stdout.write('Can not get geo_locations for offer with content=%s' % repr(content))
-        stdout.write("<br/>")
+        rabit_send('Can not get geo_locations for offer with content=%s' % repr(content), stdout)
 
     devices = get_device(content)
 
@@ -389,27 +401,32 @@ def parse_offer(content, network, site, stdout):
             real_device = 7
 
     else:
-        stdout.write('Can not get devices for offer with content=%s' % repr(content))
-        stdout.write("<br/>")
+        rabit_send('Can not get real_device for offer with content=%s' % repr(content), stdout)
 
     redirect_link = get_redirect_link(content)
 
     if not redirect_link:
         if net_offer_id and 'adwool' in network.cron:
-            get_link_through_api = 'https://adwool.api.hasoffers.com/Apiv3/json?api_key=af74bc02809fe0089e860b387d2f8a20735529b744cbcabc750b7564c804bb1a&Target=Affiliate_Offer&Method=generateTrackingLink&offer_id=' + str(
-                net_offer_id)
-            stdout.write('Start get link through API!')
-            stdout.write("<br/>")
-            link_response = None
+            api_key = None
             try:
-                link_response = get_url(get_link_through_api)
+                parse = urlparse(network.cron, allow_fragments=False)
+                api_key = parse_qs(parse.query)['api_key'][0]
+
             except Exception as e:
-                stdout.write(repr(e))
-                stdout.write("<br/>")
-            if link_response is not None:
-                if 'response' in link_response and 'data' in link_response.get(
-                        'response') and 'click_url' in link_response.get('response').get('data'):
-                    redirect_link = link_response.get('response').get('data').get('click_url')
+                pass
+            if api_key is not None:
+                get_link_through_api = 'https://adwool.api.hasoffers.com/Apiv3/json?api_key='+api_key+'&Target=Affiliate_Offer&Method=generateTrackingLink&offer_id=' + str(
+                    net_offer_id)
+                rabit_send('Start get link through API!', stdout)
+                link_response = None
+                try:
+                    link_response = get_url(get_link_through_api)
+                except Exception as e:
+                    rabit_send(repr(e), stdout)
+                if link_response is not None:
+                    if 'response' in link_response and 'data' in link_response.get(
+                            'response') and 'click_url' in link_response.get('response').get('data'):
+                        redirect_link = link_response.get('response').get('data').get('click_url')
 
     if redirect_link:
         redirect_link += '&aff_sub=#subId'
@@ -428,15 +445,14 @@ def parse_offer(content, network, site, stdout):
                 'allow_devices': real_device,
                 'number_when_click': network.virtual_click,
                 'number_when_lead': network.virtual_lead,
+                'check_click_in_network': True,
                 'status': True,
                 'auto': True,
                 'updated_at': datetime_str,
                 'created_at': datetime_str,
             },
         )
-
-        stdout.write('OK with net_offer_id=%s' % net_offer_id)
-        stdout.write("<br/>")
+        rabit_send('OK with net_offer_id=%s' % net_offer_id, stdout)
     return None
 
 
@@ -463,12 +479,10 @@ def cron_one(site, network, stdout):
             response = json.loads(response)
         else:
             response = get_url(network.cron)
-        write_log(site, network.id, 'Have response')
-        stdout.write('Have response')
-        stdout.write("<br/>")
+        rabit_send('Have response', stdout)
+
     except Exception as e:
-        stdout.write('Exception %s' % repr(e))
-        stdout.write("<br/>")
+        rabit_send('Exception %s' % repr(e), stdout)
 
     list_extra_url = []
     if response is not None:
@@ -491,28 +505,23 @@ def cron_one(site, network, stdout):
                 list_extra_url.append(url_extra)
 
         if list_extra_url:
-            stdout.write('Start process with list of urls')
-            stdout.write("<br/>")
+            rabit_send('Start process with list of urls', stdout)
             process_pool = Pool()
             for url in list_extra_url:
                 process_pool.spawn(logistic, url, network, site, stdout)
             process_pool.join()
         else:
-            stdout.write('Start process with response')
-            stdout.write("<br/>")
+            rabit_send('Start process with response', stdout)
             process(response, network, site, stdout)
-
-    CronLog.objects.filter(site=site).filter(network_id=network.id).delete()
-    CronLog.objects.create(site=site, network_name=network.name, network_id=network.id, log='Not write')
-    stdout.write('End with network_id=%s for site=%s' % (network.id, site))
-    stdout.write("<br/>")
+    rabit_send('End with network_id=%s for site=%s' % (network.id, site), stdout)
 
 
-def cron_for_network(site, stdout):
+def cron_for_network(site):
     networks = Network.objects.using(site).exclude(cron='').all()
     pool = Pool()
     for network in networks:
         if network.cron:
+            stdout = 'cron'
             pool.spawn(cron_one, site, network, stdout)
     pool.join()
 
@@ -527,7 +536,7 @@ class Command(BaseCommand):
         start_time = time.time()
 
         for site in options['network']:
-            cron_for_network(site, self.stdout)
+            cron_for_network(site)
 
         # test = get_country_codes_from_string('BetVictor Casino Slots &amp;amp; Games #3 - iPhone,iPad - UK (S)')
         # stdout.write(test)

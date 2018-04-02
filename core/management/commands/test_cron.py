@@ -12,7 +12,7 @@ from django.core.management.base import BaseCommand, CommandError
 from pyparsing import basestring
 from urllib3.exceptions import MaxRetryError
 
-from core.management.commands.cron import cron_one
+from core.management.commands.cron import cron_one, rabit_send
 from core.models import *
 from django.db import connection
 from django.apps import apps
@@ -35,12 +35,17 @@ class Command(BaseCommand):
             help='the network id inside site',
         )
 
+        parser.add_argument(
+            '--routing', dest='routing', required=True,
+            help='dynamic routing for each call',
+        )
+
     def handle(self, *args, **options):
         site = options['site']
+        routing = options['routing']
         network = Network.objects.using(site).get(pk=options['network_id'])
-        self.stdout.write('Start getting data from URL. Please wait...')
-        self.stdout.write('<br/>')
-        cron_one(site, network, self.stdout)
+        rabit_send('Start getting data from URL. Please wait...', routing)
+        cron_one(site, network, routing)
 
         self.stdout.write('Done')
 
