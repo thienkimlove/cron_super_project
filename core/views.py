@@ -155,5 +155,11 @@ def ajax_cron(request, site, network_id):
 def cron_task(request):
     site = request.GET.get('site', None)
     network_id = request.GET.get('network_id', None)
+    debug = request.GET.get('debug', None)
     routing = '%s%s' % (site, network_id)
-    return render(request, 'core/index.html', {'routing': routing, 'site': site, 'network_id': network_id})
+    return render(request, 'core/index.html', {
+        'routing': routing,
+        'site': site,
+        'network_id': network_id,
+        'debug':debug
+    })

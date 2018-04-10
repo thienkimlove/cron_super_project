@@ -97,6 +97,19 @@ DATABASES = {
             'charset': 'utf8mb4',
         }
     },
+
+    'inmob': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'inmob',
+        'USER': 'root',
+        'PASSWORD': 'tieungao',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'OPTIONS' : {
+            'charset': 'utf8mb4',
+        }
+    },
+
     'richxyz': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'richxyz',
@@ -230,22 +243,23 @@ LOG_FILE = os.path.join(BASE_DIR, 'debug.log')
 LOG_CRON_DIRECTORY = os.path.join(BASE_DIR, 'logs')
 TEST_JSON = os.path.join(BASE_DIR, 'offers')
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-        }
-    },
-    'loggers': {
-        'django.db.backends': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-    }
-}
+# enable on debug only
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'level': 'DEBUG',
+#             'class': 'logging.StreamHandler',
+#         }
+#     },
+#     'loggers': {
+#         'django.db.backends': {
+#             'handlers': ['console'],
+#             'level': 'DEBUG',
+#         },
+#     }
+# }
 
 CACHES = {
     "default": {

@@ -136,7 +136,7 @@ def process(response, network, site, stdout):
         if isinstance(raw_content, dict):
             raw_content = raw_content.values()
 
-        offer_pool = Pool(1000)
+        offer_pool = Pool(500)
         db.connections.close_all()
         for content in raw_content:
             if isinstance(content, dict):
@@ -435,24 +435,29 @@ def parse_offer(content, network, site, stdout):
 
         datetime_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        Offer.objects.using(site).update_or_create(
-            net_offer_id=net_offer_id, network=network,
-            defaults={
-                'name': offer_name,
-                'click_rate': payout,
-                'redirect_link': redirect_link,
-                'geo_locations': geo_locations,
-                'allow_devices': real_device,
-                'number_when_click': network.virtual_click,
-                'number_when_lead': network.virtual_lead,
-                'check_click_in_network': True,
-                'status': True,
-                'auto': True,
-                'updated_at': datetime_str,
-                'created_at': datetime_str,
-            },
-        )
-        rabit_send('OK with net_offer_id=%s' % net_offer_id, stdout)
+        try:
+
+            Offer.objects.using(site).update_or_create(
+                net_offer_id=net_offer_id, network=network,
+                defaults={
+                    'name': offer_name,
+                    'click_rate': payout,
+                    'redirect_link': redirect_link,
+                    'geo_locations': geo_locations,
+                    'allow_devices': real_device,
+                    'number_when_click': network.virtual_click,
+                    'number_when_lead': network.virtual_lead,
+                    'check_click_in_network': True,
+                    'status': True,
+                    'auto': True,
+                    'updated_at': datetime_str,
+                    'created_at': datetime_str,
+                },
+            )
+        except Exception as e:
+            rabit_send('Error with exception=%s' % repr(e))
+
+        #rabit_send('OK with net_offer_id=%s' % net_offer_id, stdout)
     return None
 
 
@@ -506,7 +511,7 @@ def cron_one(site, network, stdout):
 
         if list_extra_url:
             rabit_send('Start process with list of urls', stdout)
-            process_pool = Pool()
+            process_pool = Pool(10)
             for url in list_extra_url:
                 process_pool.spawn(logistic, url, network, site, stdout)
             process_pool.join()

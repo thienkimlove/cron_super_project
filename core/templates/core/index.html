@@ -51,6 +51,18 @@
       <div></div>
     </div>
 
+    {% if debug %}
+        <div id="second" style="display: block">
+            <h2>Logs</h2>
+            <div></div>
+        </div>
+    {% else %}
+        <div id="second" style="display: none">
+            <h2>Logs</h2>
+            <div></div>
+        </div>
+    {% endif %}
+
 
 
     <script>
@@ -71,7 +83,7 @@
       client.heartbeat.incoming=0;
 
       client.debug = function(e) {
-        //$('#second div').append($("<code>").text(e));
+          $('#second div').append($("<code>").text(e));
       };
 
 
