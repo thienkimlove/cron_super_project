@@ -184,6 +184,9 @@ def get_payout(content):
     if 'payout' in content:
         return content.get('payout')
 
+    if 'price' in content:
+        return content.get('price')
+
     if 'offer' in content and 'payout' in content.get('offer'):
         return content.get('offer').get('payout')
 
@@ -215,6 +218,12 @@ def get_redirect_link(content):
     if 'tracking_link' in content:
         return content.get('tracking_link')
 
+    if 'click_url' in content:
+        return content.get('click_url')
+
+    if 'tracklink' in content:
+        return content.get('tracklink')
+
     if 'offer' in content and 'tracking_link' in content.get('offer'):
         return content.get('offer').get('tracking_link')
 
@@ -236,12 +245,19 @@ def get_geo_locations(content):
         return None
 
     if 'countries' in content:
+
+        temp_country = content.get('countries')
+
         geo_string = []
-        for country in content.get('countries'):
-            if 'code' in country:
-                geo_string.append(country.get('code'))
-            else:
-                geo_string.append(country)
+
+        if isinstance(temp_country, basestring):
+            geo_string.append(temp_country)
+        else:
+            for country in content.get('countries'):
+                if 'code' in country:
+                    geo_string.append(country.get('code'))
+                else:
+                    geo_string.append(country)
         return ', '.join(geo_string)
 
     if 'offer_geo' in content and 'target' in content.get('offer_geo'):
@@ -288,6 +304,9 @@ def get_net_offer_id(content):
 
     if 'id' in content:
         return content.get('id')
+
+    if 'camp_id' in content:
+        return content.get('camp_id')
 
     return None
 
@@ -405,6 +424,7 @@ def parse_offer(content, network, site, stdout):
 
     redirect_link = get_redirect_link(content)
 
+
     if not redirect_link:
         if net_offer_id and 'adwool' in network.cron:
             api_key = None
@@ -429,7 +449,11 @@ def parse_offer(content, network, site, stdout):
                         redirect_link = link_response.get('response').get('data').get('click_url')
 
     if redirect_link:
-        redirect_link += '&aff_sub=#subId'
+        if redirect_link and '&clickid={clickid}&gaid={gaid}' in redirect_link:
+            redirect_link = redirect_link.replace('&clickid={clickid}&gaid={gaid}&android={android}&idfa={idfa}&subid={subid}', '')
+            redirect_link += '&subid=#subId'
+        else:
+            redirect_link += '&aff_sub=#subId'
 
     if redirect_link and net_offer_id and geo_locations and payout and offer_name:
 
@@ -455,7 +479,7 @@ def parse_offer(content, network, site, stdout):
                 },
             )
         except Exception as e:
-            rabit_send('Error with exception=%s' % repr(e))
+            rabit_send('Error with exception=%s' % repr(e), stdout)
 
         #rabit_send('OK with net_offer_id=%s' % net_offer_id, stdout)
     return None
@@ -496,6 +520,9 @@ def cron_one(site, network, stdout):
 
         if 'response' in response:
             response = response.get('response')
+
+        if 'ads' in response:
+            response = response.get('ads')
 
         if 'data' in response and 'data' in response.get('data'):
             response = response.get('data').get('data')
