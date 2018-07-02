@@ -192,6 +192,18 @@ DATABASES = {
             'charset': 'utf8mb4',
         }
     },
+
+    'svtool': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'svtool',
+        'USER': 'tieungao',
+        'PASSWORD': 'tieungao123',
+        'HOST': '42.112.31.173',
+        'PORT': '3306',
+        'OPTIONS' : {
+            'charset': 'utf8mb4',
+        }
+    },
 }
 
 
