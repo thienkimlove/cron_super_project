@@ -110,6 +110,19 @@ DATABASES = {
         }
     },
 
+    'inmobxyz': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'inmobxyz',
+        'USER': 'root',
+        'PASSWORD': 'tieungao',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'OPTIONS' : {
+            'charset': 'utf8mb4',
+        }
+    },
+
+
     'richxyz': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'richxyz',

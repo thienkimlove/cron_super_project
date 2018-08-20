@@ -151,6 +151,15 @@ def ajax_cron(request, site, network_id):
 
     return HttpResponse('{"msg": "OK"}', content_type='application/json')
 
+def get_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return render(request, 'core/ip.html', {'ip': ip})
+
+
 
 def cron_task(request):
     site = request.GET.get('site', None)
