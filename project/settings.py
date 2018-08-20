@@ -135,6 +135,30 @@ DATABASES = {
         }
     },
 
+    'cybernet': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'cybernet',
+        'USER': 'root',
+        'PASSWORD': 'tieungao',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'OPTIONS' : {
+            'charset': 'utf8mb4',
+        }
+    },
+
+    'cyberxyz': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'cyberxyz',
+        'USER': 'root',
+        'PASSWORD': 'tieungao',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'OPTIONS' : {
+            'charset': 'utf8mb4',
+        }
+    },
+
     'richnet': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'richnet',
