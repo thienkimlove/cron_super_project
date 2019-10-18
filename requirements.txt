@@ -31,7 +31,7 @@ pyparsing==2.2.0
 pytz==2017.3
 rabbitpy==1.0.0
 redis==2.10.6
-requests==2.11.1
+requests==2.20.0
 six==1.11.0
 StringGenerator==0.2.1
 tornado==4.5.3
