@@ -9,7 +9,7 @@ chardet==3.0.4
 cryptography==2.2.1
 Django==2.0.1
 django-celery-beat==1.1.0
-django-celery-results==1.0.1
+django-celery-results==2.4.0
 django-redis==4.9.0
 dnspython==1.15.0
 enum34==1.1.6
